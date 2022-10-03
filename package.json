@@ -4,7 +4,7 @@
 	"description": "Get notified of new real estate advertisements.",
 	"main": "src/index.ts",
 	"scripts": {
-		"start-ebay": "tsx . ebay https://www.ebay-kleinanzeigen.de/s-wohnung-mieten/80339/anzeige:angebote/preis::1200/c203l6444r10+wohnung_mieten.zimmer_d:2%2C",
+		"start-ebay": "tsx . ebay https://www.ebay-kleinanzeigen.de/s-wohnung-mieten/80339/anzeige:angebote/preis::1200/c203l6444r10+wohnung_mieten.zimmer_d:2.0%2C",
 		"lint": "eslint src --ext ts"
 	},
 	"author": "",

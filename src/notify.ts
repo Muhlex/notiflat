@@ -5,7 +5,8 @@ const token = "";
 const chatIDs = [];
 
 export function logListing(listing: Listing) {
-	console.log(`##### NEW [${listing.type}] #####`);
+	const timestampStr = new Date().toISOString().replace("T", " ").replace(/\..+/, "");
+	console.log(`<${timestampStr}> ##### NEW [${listing.type}] #####`);
 	console.log(listing.title, "(💶 " + listing.price + " €)");
 	console.log("📝", listing.desc);
 	console.log("🔗", listing.href);

@@ -36,7 +36,7 @@ function parseHtml(string?: string): Listing[] {
 			id: item.getAttribute("data-adid") + "",
 			title: item.querySelector(".ellipsis").textContent,
 			desc: item.querySelector(".aditem-main--middle--description").textContent.replaceAll("\n", " "),
-			price: Number(item.querySelector(".aditem-main--middle--price-shipping--price").textContent.replaceAll(/[.€]|\\n|\s+/g, "")),
+			price: Number(item.querySelector(".aditem-main--middle--price-shipping--price").textContent.replaceAll(/[^0-9]+/g, "")),
 			img: String(item.querySelector(".imagebox").getAttribute("data-imgsrc")).replace("rule=$_2.JPG", "rule=$_20.JPG"),
 			tags: item.querySelectorAll(".simpletag.tag-small").map(tag => tag.textContent),
 			href: "https://ebay-kleinanzeigen.de" + item.getAttribute("data-href"),
@@ -50,7 +50,6 @@ const cache = {
 };
 
 async function poll(href: string) {
-	console.log("...")
 	const listings = parseHtml(await fetchHtml(href));
 	if (listings.length === 0) return;
 
