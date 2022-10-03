@@ -1,0 +1,28 @@
+{
+	"name": "notiflat",
+	"version": "0.0.0",
+	"description": "Get notified of new real estate advertisements.",
+	"main": "src/index.ts",
+	"scripts": {
+		"start-ebay": "tsx . ebay https://www.ebay-kleinanzeigen.de/s-wohnung-mieten/80339/anzeige:angebote/preis::1200/c203l6444r10+wohnung_mieten.zimmer_d:2%2C",
+		"lint": "eslint src --ext ts"
+	},
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^18.8.0",
+		"@types/node-telegram-bot-api": "^0.57.1",
+		"@types/sanitize-html": "^2.6.2",
+		"@typescript-eslint/eslint-plugin": "^5.38.1",
+		"@typescript-eslint/parser": "^5.38.1",
+		"eslint": "^8.24.0",
+		"tsx": "^3.9.0",
+		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"node-fetch": "^3.2.10",
+		"node-html-parser": "^6.1.1",
+		"node-telegram-bot-api": "^0.59.0",
+		"sanitize-html": "^2.7.2"
+	}
+}
