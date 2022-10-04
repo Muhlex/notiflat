@@ -2,37 +2,28 @@ import { argv, exit } from "process";
 import { init as initEbay } from "./ebay";
 import { init as initWgGesucht } from "./wg-gesucht";
 import { siteLabels } from "./shared";
-// import { sendListing } from "./notify";
+
+import { sources } from "./config.json";
 
 (async () => {
-	const [, , type, href] = argv;
-	switch (type) {
-		case "ebay":
-			initEbay(href);
-			break;
+	// TODO: Make this nicer...
 
-		case "wg-gesucht":
-			initWgGesucht(href);
-			break;
-
-		default:
-			console.warn("No type specified as first argument. Exiting.");
-			exit(1);
+	let sourcesCount = 0;
+	if (sources["ebay"]) {
+		initEbay(sources["ebay"]);
+		sourcesCount++;
+		console.log(`Scheduling ${siteLabels["ebay"]} search result evaluation for:\n` + sources["ebay"]);
 	}
-	console.log(`Scheduling ${siteLabels[type]} search result evaluation for:\n` + href);
+	if (sources["wg-gesucht"]) {
+		initWgGesucht(sources["wg-gesucht"]);
+		sourcesCount++;
+		console.log(`Scheduling ${siteLabels["wg-gesucht"]} search result evaluation for:\n` + sources["wg-gesucht"]);
+	}
 
-	// sendListing({
-	// 	id: "1234",
-	// 	title: "Schöne Maisonette-Wohnung - Nahe U-Bahn \"Obersendling\" bzw. S-Bahn \"Siemenswerke\" zu vermieten",
-	// 	desc: "Objektbeschreibung * Schöne Maisonette-Wohnung * Ideal für 3 Personen * OG: Schlafzimmer mit...",
-	// 	location: "80995 Feldmoching (8 km)",
-	// 	price: 1337,
-	// 	img: "https://images.unsplash.com/photo-1664820965487-2c81f58083c5",
-	// 	size: 52,
-	// 	rooms: 2,
-	// 	url: "https://google.com",
-	// 	type: "ebay"
-	// });
+	if (sourcesCount === 0) {
+		console.warn("No sources specified in config. Exiting.");
+		exit(1);
+	}
 
 	setInterval(() => { /* keep alive forever */ }, 6000);
 })();

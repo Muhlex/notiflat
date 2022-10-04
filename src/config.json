@@ -1,0 +1,10 @@
+{
+	"telegram": {
+		"token": "",
+		"chatIDs": []
+	},
+	"sources": {
+		"ebay": "https://www.ebay-kleinanzeigen.de/s-wohnung-mieten/muenchen/anzeige:angebote/preis::1300/c203l6411r10+wohnung_mieten.zimmer_d:2.0%2C",
+		"wg-gesucht": "https://www.wg-gesucht.de/wohnungen-in-Munchen.90.2.1.0.html?offer_filter=1&city_id=90&sort_order=0&noDeact=1&categories[]=2&rent_types[]=0&rMax=1400&rmMin=2"
+	}
+}

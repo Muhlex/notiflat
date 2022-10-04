@@ -48,12 +48,12 @@ async function update(href: string) {
 		return;
 	}
 
-	for (const listing of listings) {
+	for (let i = 0, listing = listings[i]; i < listings.length ; i++) {
 		if (!knownIds.has(listing.id)) {
 			logListing(listing);
 			sendListing(listing);
 			knownIds.add(listing.id);
-		} else {
+		} else if (i >= 4) { // should always be after "TOP" items
 			// prevent "new" items at the end of the list from triggering (old items that shifted up)
 			break;
 		}

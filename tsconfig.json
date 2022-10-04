@@ -5,7 +5,8 @@
 		"lib": ["ES2021"],
 		"moduleResolution": "Node",
 		"strict": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true
 	},
 	"include": [
 		"src/**/*.ts"

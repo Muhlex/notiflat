@@ -1,9 +1,7 @@
 import TelegramBot, { SendMessageOptions } from "node-telegram-bot-api";
 import { siteLabels } from "./shared";
 
-// https://t.me/NotiflatBot
-const token = "";
-const chatIDs = [];
+import { telegram } from "./config.json";
 
 function getLocalTimestamp() {
 	const now = new Date(); // Or the date you'd like converted.
@@ -20,7 +18,7 @@ export function logListing(listing: Listing) {
 	console.log("🔗", listing.url + "\n");
 }
 
-const bot = new TelegramBot(token);
+const bot = new TelegramBot(telegram.token);
 
 export function sendListing(listing: Listing) {
 
@@ -31,7 +29,7 @@ export function sendListing(listing: Listing) {
 	};
 
 	const l = listing;
-	chatIDs.forEach(id => {
+	telegram.chatIDs.forEach(id => {
 		const text = `
 📍 _${esc(l.location) || "~Unknown location~"}_
 *${esc(l.title) || "~No title~"}*
