@@ -19,8 +19,5 @@
 		"semi": "warn",
 		"indent": ["warn", "tab", { "SwitchCase": 1 }],
 		"quotes": ["warn", "double"]
-	},
-	"ignorePatterns": [
-		"**/*.d.ts"
-	]
+	}
 }

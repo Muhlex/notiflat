@@ -1,46 +1,32 @@
-import fetch from "node-fetch";
-import sanitizeHtml from "sanitize-html";
-import { parse } from "node-html-parser";
-import { randomRange } from "./utils";
+import { fetchHtml, schedule } from "./shared";
 import { logListing, sendListing } from "./notify";
 
-async function fetchHtml(href: string) {
-	try {
-		const res = await fetch(href, {
-			headers: {
-				"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-				"Accept-Language": "en,en-US;q=0.7,de;q=0.3",
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
-			}
-		});
-		return await res.text();
-	} catch (error) {
-		console.error(error);
-		return undefined;
-	}
-}
+import sanitizeHtml from "sanitize-html";
+import { parse } from "node-html-parser";
+
+const TYPE = "ebay";
 
 function parseHtml(string?: string): Listing[] {
 	if (!string) {
-		console.error("Could not parse eBay search results.");
 		return [];
 	}
 
-	const sanitizedStr = sanitizeHtml(string, {
-		allowedAttributes: false
-	});
+	const sanitizedStr = sanitizeHtml(string, { allowedAttributes: false });
 	const html = parse(sanitizedStr);
-	const items = html.getElementById("srchrslt-adtable").querySelectorAll(".aditem");
-	return items.map(item => {
+	const items = html.querySelectorAll("#srchrslt-adtable .aditem");
+	return items.filter(item => item.getAttribute("data-adid")).map((item): Listing => {
+		const tags = item.querySelectorAll(".simpletag.tag-small").map(tag => tag.textContent);
 		return {
-			id: item.getAttribute("data-adid") + "",
-			title: item.querySelector(".ellipsis").textContent,
-			desc: item.querySelector(".aditem-main--middle--description").textContent.replaceAll("\n", " "),
-			price: Number(item.querySelector(".aditem-main--middle--price-shipping--price").textContent.replaceAll(/[^0-9]+/g, "")),
-			img: String(item.querySelector(".imagebox").getAttribute("data-imgsrc")).replace("rule=$_2.JPG", "rule=$_20.JPG"),
-			tags: item.querySelectorAll(".simpletag.tag-small").map(tag => tag.textContent),
-			href: "https://ebay-kleinanzeigen.de" + item.getAttribute("data-href"),
-			type: "ebay"
+			id: item.getAttribute("data-adid") as string,
+			title: item.querySelector(".ellipsis")?.textContent.trim(),
+			desc: item.querySelector(".aditem-main--middle--description")?.textContent.replaceAll("\n", " ").trim(),
+			location: item.querySelector(".aditem-main--top--left")?.textContent.replace(/\s+/g, " ").trim(),
+			price: Number(item.querySelector(".aditem-main--middle--price-shipping--price")?.textContent.replace(/[^0-9]+/g, "")),
+			img: item.querySelector(".imagebox")?.getAttribute("data-imgsrc")?.replace("rule=$_2.JPG", "rule=$_20.JPG"),
+			size: tags[0] ? parseInt(tags[0]) : undefined,
+			rooms: tags[1] ? parseInt(tags[1]) : undefined,
+			url: item.getAttribute("data-href") && ("https://ebay-kleinanzeigen.de" + item.getAttribute("data-href")),
+			type: TYPE
 		};
 	});
 }
@@ -49,7 +35,7 @@ const cache = {
 	knownIds: new Set<string>()
 };
 
-async function poll(href: string) {
+async function update(href: string) {
 	const listings = parseHtml(await fetchHtml(href));
 	if (listings.length === 0) return;
 
@@ -66,13 +52,13 @@ async function poll(href: string) {
 			logListing(listing);
 			sendListing(listing);
 			knownIds.add(listing.id);
+		} else {
+			// prevent "new" items at the end of the list from triggering (old items that shifted up)
+			break;
 		}
 	}
 }
 
-export function schedule(href: string, minDelay: number, maxDelay: number) {
-	poll(href);
-	setTimeout(() => {
-		schedule(href, minDelay, maxDelay);
-	}, randomRange(minDelay, maxDelay));
+export function init(href: string) {
+	schedule(() => update(href), { min: 20 * 1000, max: 40 * 1000 });
 }
