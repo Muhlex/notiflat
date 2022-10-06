@@ -1,14 +1,9 @@
-import { fetchHtml, schedule } from "./shared";
+import { parse } from "node-html-parser";
+import { fetchHtmlRetry, schedule } from "./shared";
 import { logListing, sendListing } from "./notify";
 
-import { parse } from "node-html-parser";
-
-const TYPE = "wg-gesucht";
-
 function parseHtml(string?: string): Listing[] {
-	if (!string) {
-		return [];
-	}
+	if (!string) return [];
 
 	const html = parse(string);
 	const items = html.querySelectorAll("#main_column .wgg_card.offer_list_item");
@@ -27,7 +22,7 @@ function parseHtml(string?: string): Listing[] {
 			size: (str => str ? parseInt(str) : undefined)(item.querySelector(".middle .text-right")?.textContent),
 			rooms: details[0] ? parseInt(details[0]) : undefined,
 			url: (str => str && "https://www.wg-gesucht.de" + str)(item.querySelector(".truncate_title a")?.getAttribute("href")),
-			type: TYPE
+			platform: "wg-gesucht"
 		};
 	});
 }
@@ -37,7 +32,7 @@ const cache = {
 };
 
 async function update(href: string) {
-	const listings = parseHtml(await fetchHtml(href));
+	const listings = parseHtml(await fetchHtmlRetry(href));
 	if (listings.length === 0) return;
 
 	const knownIds = cache.knownIds;

@@ -1,5 +1,5 @@
 import TelegramBot, { SendMessageOptions } from "node-telegram-bot-api";
-import { siteLabels } from "./shared";
+import { platformLabels } from "./shared";
 
 import { telegram } from "./config.json";
 
@@ -12,9 +12,9 @@ function getLocalTimestamp() {
 }
 
 export function logListing(listing: Listing) {
-	console.log(`\n<${getLocalTimestamp()}> ##### NEW [${listing.type}] #####`);
-	console.log(listing.title, "(💶 " + listing.price + " €)");
-	console.log("📝", listing.desc);
+	console.log(`\n<${getLocalTimestamp()}> -----[${listing.platform}]-----`);
+	console.log(listing.title);
+	console.log("💶", listing.price, "€");
 	console.log("🔗", listing.url + "\n");
 }
 
@@ -43,7 +43,7 @@ export function sendListing(listing: Listing) {
 			parse_mode: "MarkdownV2",
 			reply_markup: {
 				inline_keyboard: [[
-					{ text: "🔗\u2000View on " + siteLabels[l.type], url: l.url }
+					{ text: "🔗\u2000View on " + platformLabels[l.platform], url: l.url }
 				]]
 			}
 		};

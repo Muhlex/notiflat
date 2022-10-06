@@ -1,15 +1,10 @@
-import { fetchHtml, schedule } from "./shared";
-import { logListing, sendListing } from "./notify";
-
 import sanitizeHtml from "sanitize-html";
 import { parse } from "node-html-parser";
-
-const TYPE = "ebay";
+import { fetchHtmlRetry, schedule } from "./shared";
+import { logListing, sendListing } from "./notify";
 
 function parseHtml(string?: string): Listing[] {
-	if (!string) {
-		return [];
-	}
+	if (!string) return [];
 
 	const sanitizedStr = sanitizeHtml(string, { allowedAttributes: false });
 	const html = parse(sanitizedStr);
@@ -26,7 +21,7 @@ function parseHtml(string?: string): Listing[] {
 			size: tags[0] ? parseInt(tags[0]) : undefined,
 			rooms: tags[1] ? parseInt(tags[1]) : undefined,
 			url: item.getAttribute("data-href") && ("https://ebay-kleinanzeigen.de" + item.getAttribute("data-href")),
-			type: TYPE
+			platform: "ebay"
 		};
 	});
 }
@@ -36,7 +31,7 @@ const cache = {
 };
 
 async function update(href: string) {
-	const listings = parseHtml(await fetchHtml(href));
+	const listings = parseHtml(await fetchHtmlRetry(href));
 	if (listings.length === 0) return;
 
 	const knownIds = cache.knownIds;

@@ -1,4 +1,4 @@
-type ListingType = "ebay" | "wg-gesucht";
+type Platform = "ebay" | "wg-gesucht";
 
 type Listing = {
 	id: string
@@ -10,5 +10,5 @@ type Listing = {
 	size: number | undefined
 	rooms: number | undefined
 	url: string | undefined
-	type: ListingType
+	platform: Platform
 }
