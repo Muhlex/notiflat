@@ -1,4 +1,4 @@
-import { argv, exit } from "process";
+import { exit } from "process";
 import { init as initEbay } from "./ebay";
 import { init as initWgGesucht } from "./wg-gesucht";
 import { siteLabels } from "./shared";

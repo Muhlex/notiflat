@@ -26,7 +26,7 @@ function parseHtml(string?: string): Listing[] {
 			})(item.querySelector(".card_image a")?.getAttribute("style")),
 			size: (str => str ? parseInt(str) : undefined)(item.querySelector(".middle .text-right")?.textContent),
 			rooms: details[0] ? parseInt(details[0]) : undefined,
-			url: (str => str && "https://www.wg-gesucht.de/" + str)(item.querySelector(".truncate_title a")?.getAttribute("href")),
+			url: (str => str && "https://www.wg-gesucht.de" + str)(item.querySelector(".truncate_title a")?.getAttribute("href")),
 			type: TYPE
 		};
 	});
