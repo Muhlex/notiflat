@@ -11,33 +11,54 @@ function getLocalTimestamp() {
 		.replace(/\..+/, "");
 }
 
-export function logListing(listing: Listing) {
-	console.log(`\n<${getLocalTimestamp()}> -----[${listing.platform}]-----`);
-	console.log(listing.title);
-	console.log("💶", listing.price, "€");
-	console.log("🔗", listing.url + "\n");
+function logListing(listing: Listing) {
+	console.log(`\n[${getLocalTimestamp()}] -----New Listing-----`);
+	console.log(listing);
 }
 
 const bot = new TelegramBot(telegram.token);
 
 export function sendListing(listing: Listing) {
-
-
 	const esc = (string: string | undefined) => {
 		if (!string) return undefined;
 		return string.replace(/[_*[\]()~`>#+-=|{}.!]/g, "\\$&");
 	};
 
+	const eur = (amount?: number) => {
+		return amount
+			? amount.toLocaleString("en-US").replaceAll(",", "\u200a") + "\u2009€"
+			: "—";
+	};
+
+	const terms = (terms?: Terms) => {
+		const date = (date: Date) => {
+			const d = String(date.getDate()).padStart(2, "0");
+			const m = String(date.getMonth() + 1).padStart(2, "0");
+			const y = date.getFullYear();
+			return [d, m, y].join(".");
+		};
+
+		if (terms?.start && terms.end) return `${date(terms.start)} - ${date(terms.end)}`;
+		else if (terms?.start) return `from ${date(terms.start)}`;
+		else if (terms?.end) return `until ${date(terms.end)}`;
+		return undefined;
+	};
+
 	const l = listing;
+	logListing(l);
+
 	telegram.chatIDs.forEach(id => {
-		const text = `
+		const text = `\
 📍 _${esc(l.location) || "~Unknown location~"}_
 *${esc(l.title) || "~No title~"}*
-💶 ${l.price ? l.price.toLocaleString("en-US").replaceAll(",", "\u200a") + "\u2009€" : "~Unknown price~"}
-📝 ${esc(l.desc) || "~No description~"}
+${(l.price?.base || l.price?.total)
+		? `🥶 ${eur(l.price.base)} \\| 🥵 ${eur(l.price.total)}`
+		: "~Unknown price~"}
+
+📝 ${esc(l.desc && l.desc.length > 200 && l.desc.substring(0, 200) + "..." || l.desc) || "~No description~"}
 📐 ${l.size ? l.size + "\u2009m²" : "~Unknown size~"}
 📦 ${l.rooms ? l.rooms + "\u2009rooms" : "~Room count unknown~"}
-		`.trim();
+📅 ${esc(terms(l.terms)) || "~Unknown date~"}`;
 
 		const options: SendMessageOptions = {
 			parse_mode: "MarkdownV2",

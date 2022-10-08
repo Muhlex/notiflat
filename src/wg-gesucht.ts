@@ -1,12 +1,14 @@
 import { parse } from "node-html-parser";
-import { fetchHtmlRetry, schedule } from "./shared";
-import { logListing, sendListing } from "./notify";
+import { toInt, fetchHtmlRetry, schedule } from "./shared";
+import { sendListing } from "./notify";
 
-function parseHtml(string?: string): Listing[] {
-	if (!string) return [];
+import config from "./config.json";
 
-	const html = parse(string);
-	const items = html.querySelectorAll("#main_column .wgg_card.offer_list_item");
+function parseHtml(html?: string): Listing[] {
+	if (!html) return [];
+
+	const root = parse(html);
+	const items = root.querySelectorAll("#main_column .wgg_card.offer_list_item");
 	return items.filter(item => item.getAttribute("data-id")).map((item): Listing => {
 		const details = item.querySelector(".card_body .col-xs-11 span")?.textContent.replace(/\s+/g, " ").trim().split(" | ") || [];
 		return {
@@ -14,17 +16,47 @@ function parseHtml(string?: string): Listing[] {
 			title: item.querySelector(".truncate_title")?.textContent.trim(),
 			desc: undefined,
 			location: details[2] ? `${details[2]}, ${details[1]}` : details[1],
-			price: (str => str ? parseInt(str) : undefined)(item.querySelector(".middle b")?.textContent),
+			price: {
+				total: toInt(item.querySelector(".middle b")?.textContent)
+			},
 			img: (str => {
 				const url = str && /background-image:\s*url\((.*?)\)/.exec(str);
 				return url && url[1].replace(".small.", ".large.") || undefined;
 			})(item.querySelector(".card_image a")?.getAttribute("style")),
-			size: (str => str ? parseInt(str) : undefined)(item.querySelector(".middle .text-right")?.textContent),
+			size: toInt(item.querySelector(".middle .text-right")?.textContent),
 			rooms: details[0] ? parseInt(details[0]) : undefined,
 			url: (str => str && "https://www.wg-gesucht.de" + str)(item.querySelector(".truncate_title a")?.getAttribute("href")),
 			platform: "wg-gesucht"
 		};
 	});
+}
+
+async function getDetails(listing: Listing) {
+	if (!listing.url) return;
+	const html = await fetchHtmlRetry(listing.url);
+	if (!html) return;
+
+	const root = parse(html);
+	const row = root.querySelector(".panel-body .row:nth-child(6)");
+	const terms = row?.querySelectorAll(".col-sm-3 p b")
+		.filter(el => !el.classList.contains("noprint"))
+		.map(el => el.textContent);
+	const parseDate = (string: string) => {
+		const [d, m, y] = string.split(".");
+		return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+	};
+
+	const descEl = root.querySelector("#ad_description_text");
+	if (descEl) {
+		[...descEl.querySelectorAll(".noprint"), ...descEl.querySelectorAll("h3")].forEach(el => el.remove());
+	}
+	listing.desc = descEl?.textContent.replaceAll(/\s+/g, " ").trim();
+	if (!listing.price) listing.price = {};
+	listing.price.base = toInt(row?.querySelector("table tr td + td")?.textContent);
+	listing.price.deposit = toInt(row?.querySelector("table tr:nth-child(4) td + td")?.textContent);
+	const start = terms && terms[0] ? parseDate(terms[0]) : undefined;
+	const end = terms && terms[1] ? parseDate(terms[1]) : undefined;
+	listing.terms = terms && { start, end };
 }
 
 const cache = {
@@ -43,12 +75,12 @@ async function update(href: string) {
 		return;
 	}
 
-	for (let i = 0, listing = listings[i]; i < listings.length ; i++) {
+	for (const listing of listings) {
 		if (!knownIds.has(listing.id)) {
-			logListing(listing);
+			if (config.detailed) await getDetails(listing);
 			sendListing(listing);
 			knownIds.add(listing.id);
-		} else if (i >= 4) { // should always be after "TOP" items
+		} else {
 			// prevent "new" items at the end of the list from triggering (old items that shifted up)
 			break;
 		}

@@ -12,7 +12,11 @@ export const defaultHeaders: HeadersInit = {
 };
 
 export function sleep(ms: number) {
-	return new Promise<void>(resolve => setTimeout(() => resolve(), ms));
+	return new Promise<void>(resolve => setTimeout(resolve, ms));
+}
+
+export function toInt(string?: string) {
+	return string ? parseInt(string.replace(/[^0-9]+/g, ""), 10) : undefined;
 }
 
 export async function fetchHtmlRetry(

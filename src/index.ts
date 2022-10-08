@@ -14,12 +14,12 @@ import { platformLabels } from "./shared";
 	let urlCount = 0;
 	for (const platformStr in sources) {
 		const platform = platformStr as Platform;
-		const urls = sources[platform];
+		const { urls } = sources[platform];
 		const func = initFuncs[platform];
 		for (const url of urls) {
 			func(url);
 			urlCount++;
-			console.log(`Initializing ${platformLabels[platform]} search: ${url}.`);
+			console.log(`Initializing ${platformLabels[platform]} search: ${url}`);
 		}
 	}
 
@@ -29,6 +29,8 @@ import { platformLabels } from "./shared";
 	}
 
 	const platformCount = Object.keys(sources).length;
-	console.log(`Listening for updates on ${urlCount} search queries across ${platformCount} platforms.`);
+	console.log(`\
+Listening for updates on ${urlCount} search quer${urlCount === 1 ? "y" : "ies"} \
+across ${platformCount} platform${platformCount === 1 ? "" : "s"}.`);
 	setInterval(() => { /* keep alive forever */ }, 6000);
 })();
